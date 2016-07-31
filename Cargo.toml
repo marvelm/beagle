@@ -1,0 +1,9 @@
+[package]
+name = "beagle"
+version = "0.1.0"
+authors = ["Marvel Mathew <marvel@busbud.com>"]
+
+[dependencies]
+hyper = "0.9"
+regex = "0.1"
+chrono = "0.2"
