@@ -2,7 +2,8 @@
 
 Realtime analysis of Heroku logs
 
-Usage
+### Usage
+
 First, log in to Heroku. Then, try running Beagle in client mode.
 
 ```
