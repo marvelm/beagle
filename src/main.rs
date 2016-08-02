@@ -1,13 +1,15 @@
 #[macro_use] extern crate hyper;
-extern crate chrono;
+#[macro_use] extern crate nom;
 extern crate regex;
+extern crate iso8601;
 
 use std::env;
 use std::io::{BufRead, BufReader, Read};
 
-use chrono::{DateTime, FixedOffset};
 use hyper::client::Client;
 use hyper::header::{Authorization, Basic};
+
+mod parser;
 
 fn main() {
     let mut args = env::args();
@@ -36,8 +38,8 @@ fn client_mode(frame_size: usize) {
 
             match line {
                 Ok(s) => {
-                    let log_line = parse_log_line(s);
-                    current_frame.push(log_line);
+                    let log_line = parser::parse_log_line(&s);
+                    current_frame.push(log_line.unwrap());
                 },
                 _ => {
                     continue 'start;
@@ -68,14 +70,14 @@ fn get_tail_url() -> String {
 }
 
 #[derive(Debug, Clone)]
-struct LogLine {
-    timestamp: DateTime<FixedOffset>,
+pub struct LogLine {
+    timestamp: iso8601::DateTime,
     logger: String,
     process: String,
     line: String,
 }
 
-fn parse_log_line(raw_line: String) -> LogLine {
+pub fn parse_log_line(raw_line: String) -> LogLine {
     let mut pieces = raw_line.split_whitespace();
     let raw_timestamp = pieces.next().unwrap();
     let logger = pieces.next().unwrap();
@@ -87,7 +89,7 @@ fn parse_log_line(raw_line: String) -> LogLine {
     }
 
     LogLine {
-        timestamp: DateTime::parse_from_rfc3339(raw_timestamp).unwrap(),
+        timestamp: iso8601::datetime(raw_timestamp).unwrap(),
         logger: logger.to_string(),
         process: logger.to_string(),
         line: remaining,

@@ -7,3 +7,5 @@ authors = ["Marvel Mathew <marvel@busbud.com>"]
 hyper = "0.9"
 regex = "0.1"
 chrono = "0.2"
+iso8601 = "0.1.1"
+nom = "1.2.4"
