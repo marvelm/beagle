@@ -77,25 +77,6 @@ pub struct LogLine {
     line: String,
 }
 
-pub fn parse_log_line(raw_line: String) -> LogLine {
-    let mut pieces = raw_line.split_whitespace();
-    let raw_timestamp = pieces.next().unwrap();
-    let logger = pieces.next().unwrap();
-
-    let mut remaining = String::new();
-    for piece in pieces {
-        remaining.push_str(" ");
-        remaining.push_str(piece);
-    }
-
-    LogLine {
-        timestamp: iso8601::datetime(raw_timestamp).unwrap(),
-        logger: logger.to_string(),
-        process: logger.to_string(),
-        line: remaining,
-    }
-}
-
 fn analyze_log_frame(log_frame: Vec<LogLine>) {
     for line in log_frame {
         println!("{:?}", line);
