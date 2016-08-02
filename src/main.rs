@@ -33,25 +33,31 @@ pub fn client_mode() -> Receiver<LogLine>{
             let mut client = Client::new();
             client.set_read_timeout(None);
 
-            let response = client.get(&tail_url).send().unwrap();
+            let response = client.get(&tail_url).send()
+                .expect("Unable to connect to Heroku");
             let buf = BufReader::new(response);
 
             for line in buf.lines() {
-                match line {
-                    Ok(s) => {
-                        let log_line = parser::parse_log_line(&s)
-                            .expect("Parsing log line");
-                        tx.send(log_line).unwrap();
-                    },
-                    _ => {
-                        continue 'start;
-                    },
+                match parse_log_line(line) {
+                    Some(log_line) => tx.send(log_line)
+                        .expect("Unable to send log_line"),
+                    None => continue 'start
                 }
             }
         }
     });
 
     rx
+}
+
+fn parse_log_line(line: std::io::Result<String>) -> Option<LogLine> {
+    match line {
+        Ok(s) => parser::parse_log_line(&s),
+        Err(e) => {
+            println!("{}, {}", "Error reading line", e);
+            None
+        }
+    }
 }
 
 fn get_tail_url() -> String {
@@ -67,10 +73,12 @@ fn get_tail_url() -> String {
             username: username,
             password: Some(password)
         }))
-        .send().unwrap();
+        .send()
+        .expect("Connection error while getting tail url");
 
     let mut tail_url = String::new();
-    response.read_to_string(&mut tail_url).unwrap();
+    response.read_to_string(&mut tail_url)
+        .expect("Unable to read tail url");
     return tail_url;
 }
 
