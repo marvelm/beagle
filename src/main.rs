@@ -1,10 +1,12 @@
 #[macro_use] extern crate hyper;
 #[macro_use] extern crate nom;
-extern crate regex;
 extern crate iso8601;
+extern crate regex;
 
 use std::env;
 use std::io::{BufRead, BufReader, Read};
+use std::sync::mpsc::{channel, Receiver};
+use std::thread;
 
 use hyper::client::Client;
 use hyper::header::{Authorization, Basic};
@@ -15,38 +17,41 @@ fn main() {
     let mut args = env::args();
     if args.nth(1).expect("client") == "client" {
         println!("client mode");
-        client_mode(10);
+
+        for log_line in client_mode() {
+            println!("{:?}", log_line);
+        }
     }
 }
 
-fn client_mode(frame_size: usize) {
-    'start: loop {
-        let tail_url = get_tail_url();
-        let mut client = Client::new();
-        client.set_read_timeout(None);
+pub fn client_mode() -> Receiver<LogLine>{
+    let (tx, rx) = channel();
 
-        let response = client.get(&tail_url).send().unwrap();
-        let buf = BufReader::new(response);
+    thread::spawn(move|| {
+        'start: loop {
+            let tail_url = get_tail_url();
+            let mut client = Client::new();
+            client.set_read_timeout(None);
 
-        let mut current_frame: Vec<LogLine> = vec![];
+            let response = client.get(&tail_url).send().unwrap();
+            let buf = BufReader::new(response);
 
-        for line in buf.lines() {
-            if current_frame.len() == frame_size {
-                analyze_log_frame(current_frame.clone());
-                current_frame.clear();
-            }
-
-            match line {
-                Ok(s) => {
-                    let log_line = parser::parse_log_line(&s);
-                    current_frame.push(log_line.unwrap());
-                },
-                _ => {
-                    continue 'start;
-                },
+            for line in buf.lines() {
+                match line {
+                    Ok(s) => {
+                        let log_line = parser::parse_log_line(&s)
+                            .expect("Parsing log line");
+                        tx.send(log_line).unwrap();
+                    },
+                    _ => {
+                        continue 'start;
+                    },
+                }
             }
         }
-    }
+    });
+
+    rx
 }
 
 fn get_tail_url() -> String {
@@ -75,10 +80,4 @@ pub struct LogLine {
     logger: String,
     process: String,
     line: String,
-}
-
-fn analyze_log_frame(log_frame: Vec<LogLine>) {
-    for line in log_frame {
-        println!("{:?}", line);
-    }
 }
