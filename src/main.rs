@@ -13,7 +13,7 @@ fn main() {
         println!("client mode");
 
         let log_lines: Receiver<LogLine> = client_mode();
-        let router_lines: Receiver<HerokuRouterLogLine> = parse_router_log_lines(log_line_rx);
+        let router_lines: Receiver<HerokuRouterLogLine> = parse_router_log_lines(log_lines);
         let bundle_size = 12;
         let bundles = bundle(router_lines, bundle_size);
         loop {
