@@ -3,6 +3,14 @@ name = "beagle"
 version = "0.1.0"
 authors = ["Marvel Mathew <marvel@busbud.com>"]
 
+[lib]
+name = "beagle"
+path = "src/lib.rs"
+
+[[bin]]
+name = "beaglebin"
+path = "src/main.rs"
+
 [dependencies]
 hyper = "0.9"
 regex = "0.1"

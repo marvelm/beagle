@@ -1,78 +1,36 @@
-#[macro_use] extern crate hyper;
-#[macro_use] extern crate nom;
-extern crate iso8601;
-extern crate regex;
+extern crate beagle;
 
 use std::env;
-use std::io::{BufRead, BufReader, Result};
-use std::sync::mpsc::{channel, Receiver};
-use std::thread;
 
-use hyper::client::Client;
-
-mod parser;
-mod util;
-mod pipes;
-
-use pipes::bundle;
+use beagle::{LogLine, client_mode};
+use beagle::pipes::heroku::{HerokuRouterLogLine, parse_router_log_lines};
+use beagle::pipes::bundle;
+use std::sync::mpsc::Receiver;
 
 fn main() {
     let mut args = env::args();
     if args.nth(1).expect("client") == "client" {
         println!("client mode");
 
+        let log_line_rx: Receiver<LogLine> = client_mode();
+
         let bundle_size = 12;
-        let rx = bundle(client_mode(), bundle_size);
-        let mut i = 0;
+        let rx = bundle(parse_router_log_lines(log_line_rx), bundle_size);
         loop {
             let log_bundle = rx.recv().unwrap();
-            i += bundle_size;
-            println!("{} {:?}", i, log_bundle.first().unwrap());
+            analyze_bundle(log_bundle)
         }
     }
 }
 
-pub fn client_mode() -> Receiver<LogLine>{
-    let (tx, rx) = channel();
-
-    thread::spawn(move|| {
-        'start: loop {
-            let tail_url = util::get_tail_url()
-                .expect("Getting tail url");
-            let mut client = Client::new();
-            client.set_read_timeout(None);
-
-            let response = client.get(&tail_url).send()
-                .expect("Connecting to Heroku");
-            let buf = BufReader::new(response);
-
-            for line in buf.lines() {
-                match parse_log_line(line) {
-                    Some(log_line) => tx.send(log_line)
-                        .expect("Unable to send log_line"),
-                    None => continue 'start
-                }
-            }
-        }
-    });
-
-    rx
-}
-
-fn parse_log_line(line: Result<String>) -> Option<LogLine> {
-    match line {
-        Ok(s) => parser::parse_log_line(&s),
-        Err(e) => {
-            println!("{}, {}", "Error reading line", e);
-            None
+fn analyze_bundle(log_bundle: Vec<HerokuRouterLogLine>) {
+    let mut num_500 = 0;
+    for line in log_bundle {
+        if line.status == 500 {
+            num_500 += 1;
         }
     }
-}
-
-#[derive(Debug, Clone)]
-pub struct LogLine {
-    timestamp: iso8601::DateTime,
-    logger: String,
-    process: String,
-    line: String,
+    if num_500 > 2 {
+        println!("Something's going on");
+    }
 }
