@@ -12,12 +12,12 @@ fn main() {
     if args.nth(1).expect("client") == "client" {
         println!("client mode");
 
-        let log_line_rx: Receiver<LogLine> = client_mode();
-
+        let log_lines: Receiver<LogLine> = client_mode();
+        let router_lines: Receiver<HerokuRouterLogLine> = parse_router_log_lines(log_line_rx);
         let bundle_size = 12;
-        let rx = bundle(parse_router_log_lines(log_line_rx), bundle_size);
+        let bundles = bundle(router_lines, bundle_size);
         loop {
-            let log_bundle = rx.recv().unwrap();
+            let log_bundle = bundles.recv().unwrap();
             analyze_bundle(log_bundle)
         }
     }
