@@ -5,20 +5,20 @@ use iso8601;
 
 use LogLine;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct HerokuRouterLogLine {
-    timestamp: iso8601::DateTime,
-    at: String,
-    method: String,
-    path: String,
-    host: String,
-    request_id: String,
-    fwd: String,
-    dyno: String,
-    connect: i32,
-    service: i32,
-    status: u8,
-    bytes: i32,
+    pub timestamp: iso8601::DateTime,
+    pub at: String,
+    pub method: String,
+    pub path: String,
+    pub host: String,
+    pub request_id: String,
+    pub fwd: String,
+    pub dyno: String,
+    pub connect: i32,
+    pub service: i32,
+    pub status: u16,
+    pub bytes: i32,
 }
 
 pub fn parse_router_log_lines(rx: Receiver<LogLine>) -> Receiver<HerokuRouterLogLine> {
@@ -53,10 +53,10 @@ pub fn convert_log_line(log_line: LogLine) -> Option<HerokuRouterLogLine> {
     let mut request_id = String::new();
     let mut fwd = String::new();
     let mut dyno = String::new();
-    let mut connect: i32 = 0;
-    let mut service: i32 = 0;
-    let mut status: u8 = 0;
-    let mut bytes: i32 = 0;
+    let mut connect = 0;
+    let mut service = 0;
+    let mut status = 0;
+    let mut bytes = 0;
 
     for (key, value) in pairs {
         match key.as_str() {
