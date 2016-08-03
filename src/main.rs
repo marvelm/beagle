@@ -12,7 +12,9 @@ use hyper::client::Client;
 
 mod parser;
 mod util;
-mod bundler;
+mod pipes;
+
+use pipes::Bundler;
 
 fn main() {
     let mut args = env::args();
@@ -21,7 +23,7 @@ fn main() {
 
         let rx = client_mode();
         let bundle_size = 10;
-        let bundler = bundler::Bundler::new(rx, bundle_size);
+        let bundler = Bundler::new(rx, bundle_size);
         let mut i = 0;
         loop {
             let bundle = bundler.receiver.recv().unwrap();
