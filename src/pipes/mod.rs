@@ -1,4 +1,4 @@
-mod bundler;
+mod bundle;
 pub mod heroku;
 
-pub use pipes::bundler::{Bundler, LogBundle};
+pub use pipes::bundle::bundle;

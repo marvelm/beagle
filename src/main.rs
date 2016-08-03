@@ -14,17 +14,20 @@ mod parser;
 mod util;
 mod pipes;
 
-use pipes::heroku::parse_router_log_lines;
+use pipes::bundle;
 
 fn main() {
     let mut args = env::args();
     if args.nth(1).expect("client") == "client" {
         println!("client mode");
 
-        let rx = parse_router_log_lines(client_mode());
+        let bundle_size = 12;
+        let rx = bundle(client_mode(), bundle_size);
+        let mut i = 0;
         loop {
-            let log_line = rx.recv().unwrap();
-            println!("{:?}", log_line);
+            let log_bundle = rx.recv().unwrap();
+            i += bundle_size;
+            println!("{} {:?}", i, log_bundle.first().unwrap());
         }
     }
 }
