@@ -7,7 +7,6 @@ pub mod pipes;
 mod util;
 mod parser;
 
-use std::env;
 use std::io::{BufRead, BufReader, Result};
 use std::sync::mpsc::{channel, Receiver};
 use std::thread;
