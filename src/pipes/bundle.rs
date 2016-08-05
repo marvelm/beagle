@@ -9,8 +9,8 @@ pub fn bundle
     let (tx, rx) = channel();
     thread::spawn(move|| {
         loop {
-            let mut current_bundle = Vec::new();
-            for _ in 1..bundle_size {
+            let mut current_bundle = Vec::with_capacity(bundle_size);
+            for _ in 0..bundle_size {
                 let received = receiver.recv().unwrap();
                 current_bundle.push(received);
             }
