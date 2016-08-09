@@ -47,7 +47,7 @@ fn main() {
 
             render::error_rate(&mut term, num_errors, bundle_size);
             render::sample_line(&mut term,
-                               log_bundle.first().unwrap());
+                                log_bundle.first().unwrap());
             term.swap_buffers().unwrap();
         }
     }

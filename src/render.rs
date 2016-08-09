@@ -4,7 +4,7 @@ use rustty::ui::{Painter, Dialog, Alignable, HorizontalAlign, VerticalAlign};
 use beagle::pipes::heroku::{HerokuRouterLogLine};
 
 pub fn error_rate(term: &mut Terminal,
-              num_errors: usize, bundle_size: usize) {
+                  num_errors: usize, bundle_size: usize) {
     let mut dialog = Dialog::new(50, 6);
     let mut msg = String::new();
     msg.push_str(&num_errors.to_string());
@@ -21,7 +21,7 @@ pub fn error_rate(term: &mut Terminal,
 }
 
 pub fn sample_line(term: &mut Terminal,
-               line: &HerokuRouterLogLine) {
+                   line: &HerokuRouterLogLine) {
     let mut dialog = Dialog::new(100, 6);
     dialog.window_mut().align(term,
                               HorizontalAlign::Left,
