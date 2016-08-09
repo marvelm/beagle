@@ -5,7 +5,7 @@ authors = ["Marvel Mathew <marvel@busbud.com>"]
 
 [lib]
 name = "beagle"
-path = "src/lib.rs"
+path = "src/beagle/lib.rs"
 
 [[bin]]
 name = "beaglebin"

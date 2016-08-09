@@ -3,11 +3,10 @@ extern crate rustty;
 
 use std::env;
 use std::sync::mpsc::Receiver;
-use std::thread;
 use std::time::Duration;
 
-use rustty::{Color, Terminal, Event, HasSize};
-use rustty::ui::{Painter, Dialog, DialogResult, Alignable, HorizontalAlign, VerticalAlign, Widget};
+use rustty::{Terminal, Event};
+use rustty::ui::{Painter, Dialog, Alignable, HorizontalAlign, VerticalAlign};
 
 use beagle::{LogLine, client_mode};
 use beagle::pipes::heroku::{HerokuRouterLogLine, parse_router_log_lines};
@@ -43,14 +42,16 @@ fn render_sample_line(term: &mut Terminal,
 
 fn main() {
     let mut args = env::args();
-    if args.nth(1).expect("client") == "client" {
+    if args.nth(1) .expect("Reading first arg") == "client" {
         let mut term = Terminal::new().unwrap();
         term.swap_buffers().unwrap();
 
         let log_lines: Receiver<LogLine> = client_mode();
         let router_lines: Receiver<HerokuRouterLogLine> = parse_router_log_lines(log_lines);
+
         let bundle_size = 12;
         render_error_rate(&mut term, 0, bundle_size);
+
         let bundles = bundle(router_lines, bundle_size);
 
         let timeout = Duration::from_millis(100);
