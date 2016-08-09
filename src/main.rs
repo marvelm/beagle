@@ -31,16 +31,13 @@ fn render_error_rate(term: &mut Terminal,
 }
 
 fn render_sample_line(term: &mut Terminal,
-                      line: &str) {
+                      line: &HerokuRouterLogLine) {
     let mut dialog = Dialog::new(100, 6);
-    let mut msg = String::new();
-    msg.push_str("Sample request: ");
-    msg.push_str(line);
-
     dialog.window_mut().align(term,
-                          HorizontalAlign::Left,
-                          VerticalAlign::Bottom, 1);
-    dialog.window_mut().printline(1, 1, &msg);
+                              HorizontalAlign::Left,
+                              VerticalAlign::Bottom, 1);
+    dialog.window_mut().printline(0, 1, &line.path);
+    dialog.window_mut().printline(0, 2, &line.request_id);
     dialog.window().draw_into(term);
 }
 
@@ -76,7 +73,7 @@ fn main() {
 
             render_error_rate(&mut term, num_errors, bundle_size);
             render_sample_line(&mut term,
-                               &log_bundle.first().unwrap().path);
+                               log_bundle.first().unwrap());
             term.swap_buffers().unwrap();
         }
     }

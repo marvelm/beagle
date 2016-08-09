@@ -24,8 +24,7 @@ pub struct HerokuRouterLogLine {
 pub fn parse_router_log_lines(rx: Receiver<LogLine>) -> Receiver<HerokuRouterLogLine> {
     let (tx, heroku_receiver) = channel();
     thread::spawn(move||{
-        loop {
-            let log_line = rx.recv().expect("Received parsed log_line");
+        for log_line in rx.iter() {
             convert_log_line(log_line)
                 .map(|heroku_log_line| {
                     tx.send(heroku_log_line)
