@@ -11,10 +11,11 @@ pub fn bundle
         loop {
             let mut current_bundle = Vec::with_capacity(bundle_size);
             for _ in 0..bundle_size {
-                let received = receiver.recv().unwrap();
+                let received = receiver.recv()
+                    .expect("Received line for bundling");
                 current_bundle.push(received);
             }
-            tx.send(current_bundle).unwrap();
+            tx.send(current_bundle).expect("Sending bundle");
         }
     });
 

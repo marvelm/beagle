@@ -2,9 +2,11 @@ use iso8601::parsers::parse_datetime;
 use nom::{rest, space};
 
 use LogLine;
+use std::str::from_utf8;
 
 fn bytes_to_string(bytes: &[u8]) -> String {
-    String::from(::std::str::from_utf8(bytes).unwrap())
+    String::from(from_utf8(bytes)
+                 .expect("Converting bytes to string"))
 }
 
 named!(log_line_parser( &[u8] ) -> LogLine, chain!(

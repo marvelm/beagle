@@ -25,10 +25,11 @@ pub fn parse_router_log_lines(rx: Receiver<LogLine>) -> Receiver<HerokuRouterLog
     let (tx, heroku_receiver) = channel();
     thread::spawn(move||{
         loop {
-            let log_line = rx.recv().unwrap();
+            let log_line = rx.recv().expect("Received parsed log_line");
             convert_log_line(log_line)
                 .map(|heroku_log_line| {
-                    tx.send(heroku_log_line).unwrap();
+                    tx.send(heroku_log_line)
+                        .expect("Sending heroku_log_Line");
                 });
         }
     });
@@ -42,7 +43,8 @@ pub fn convert_log_line(log_line: LogLine) -> Option<HerokuRouterLogLine> {
 
     let parts = log_line.line.split_whitespace();
     let pairs = parts.map(|part| {
-        let i = part.chars().position(|char| { char == '=' }).unwrap();
+        let i = part.chars().position(|char| { char == '=' })
+            .expect("Finding equal sign");
         (part[0..i].to_string(), part[i+1..].to_string())
     });
 
@@ -71,7 +73,8 @@ pub fn convert_log_line(log_line: LogLine) -> Option<HerokuRouterLogLine> {
             "service" => service = parse_ms(value),
             "status" => status = value.parse().expect("Parsing status code"),
             "bytes" => bytes = value.parse().expect("Parsing bytes"),
-            _ => println!("Unknown key {}={}", key, value),
+            _ => continue,
+            // _ => println!("Unknown key {}={}", key, value),
         }
     }
 
