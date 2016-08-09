@@ -1,44 +1,17 @@
 extern crate beagle;
 extern crate rustty;
 
+mod render;
+
 use std::env;
 use std::sync::mpsc::Receiver;
 use std::time::Duration;
 
 use rustty::{Terminal, Event};
-use rustty::ui::{Painter, Dialog, Alignable, HorizontalAlign, VerticalAlign};
 
 use beagle::{LogLine, client_mode};
 use beagle::pipes::heroku::{HerokuRouterLogLine, parse_router_log_lines};
 use beagle::pipes::bundle;
-
-fn render_error_rate(term: &mut Terminal,
-                     num_errors: usize, bundle_size: usize) {
-    let mut dialog = Dialog::new(50, 6);
-    let mut msg = String::new();
-    msg.push_str(&num_errors.to_string());
-    msg.push('/');
-    msg.push_str(&bundle_size.to_string());
-    msg.push_str(" requests have been status_code=500");
-
-    dialog.window_mut().align(term,
-                              HorizontalAlign::Left,
-                              VerticalAlign::Top, 1);
-    dialog.window_mut().printline(1, 1, &msg);
-    dialog.window_mut().draw_box();
-    dialog.window().draw_into(term);
-}
-
-fn render_sample_line(term: &mut Terminal,
-                      line: &HerokuRouterLogLine) {
-    let mut dialog = Dialog::new(100, 6);
-    dialog.window_mut().align(term,
-                              HorizontalAlign::Left,
-                              VerticalAlign::Bottom, 1);
-    dialog.window_mut().printline(0, 1, &line.path);
-    dialog.window_mut().printline(0, 2, &line.request_id);
-    dialog.window().draw_into(term);
-}
 
 fn main() {
     let mut args = env::args();
@@ -50,7 +23,7 @@ fn main() {
         let router_lines: Receiver<HerokuRouterLogLine> = parse_router_log_lines(log_lines);
 
         let bundle_size = 12;
-        render_error_rate(&mut term, 0, bundle_size);
+        render::error_rate(&mut term, 0, bundle_size);
 
         let bundles = bundle(router_lines, bundle_size);
 
@@ -72,8 +45,8 @@ fn main() {
                 }
             });
 
-            render_error_rate(&mut term, num_errors, bundle_size);
-            render_sample_line(&mut term,
+            render::error_rate(&mut term, num_errors, bundle_size);
+            render::sample_line(&mut term,
                                log_bundle.first().unwrap());
             term.swap_buffers().unwrap();
         }
